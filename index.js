@@ -14,7 +14,7 @@ process.on('uncaughtException', (err) => {
 async function startApp() {
     try {
         console.log("Initializing database...");
-        await getDB();
+        getDB();
         console.log("Database initialized successfully.");
 
         console.log("Starting Discord Bot...");

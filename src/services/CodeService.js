@@ -12,19 +12,16 @@ class CodeService {
     }
 
     static async generateCodeForUser(discordId, eventId) {
-        const db = await getDB();
+        const db = getDB();
         
         // Invalidate previous codes for this user for this event (optional, but good practice)
-        await db.run(
-            `UPDATE AccessCodes SET expiresAt = CURRENT_TIMESTAMP WHERE discordId = ? AND eventId = ? AND used = 0`,
-            [discordId, eventId]
-        );
+        db.prepare(`UPDATE AccessCodes SET expiresAt = CURRENT_TIMESTAMP WHERE discordId = ? AND eventId = ? AND used = 0`).run(discordId, eventId);
 
         let code;
         let isUnique = false;
         while (!isUnique) {
             code = CodeService.generateRandomCode();
-            const existing = await db.get(`SELECT * FROM AccessCodes WHERE code = ?`, [code]);
+            const existing = db.prepare(`SELECT * FROM AccessCodes WHERE code = ?`).get(code);
             if (!existing) {
                 isUnique = true;
             }
@@ -33,22 +30,19 @@ class CodeService {
         // Set expiration (e.g., 2 hours from now)
         const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
 
-        await db.run(
-            `INSERT INTO AccessCodes (discordId, eventId, code, expiresAt) VALUES (?, ?, ?, ?)`,
-            [discordId, eventId, code, expiresAt]
-        );
+        db.prepare(`INSERT INTO AccessCodes (discordId, eventId, code, expiresAt) VALUES (?, ?, ?, ?)`).run(discordId, eventId, code, expiresAt);
 
         return code;
     }
 
     static async generateManualCode(eventId) {
-        const db = await getDB();
+        const db = getDB();
         
         let code;
         let isUnique = false;
         while (!isUnique) {
             code = CodeService.generateRandomCode();
-            const existing = await db.get(`SELECT * FROM AccessCodes WHERE code = ?`, [code]);
+            const existing = db.prepare(`SELECT * FROM AccessCodes WHERE code = ?`).get(code);
             if (!existing) {
                 isUnique = true;
             }
@@ -58,17 +52,14 @@ class CodeService {
         const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
 
         // Use 'MANUAL' or a specific string for discordId to indicate it was manually generated
-        await db.run(
-            `INSERT INTO AccessCodes (discordId, eventId, code, expiresAt) VALUES (?, ?, ?, ?)`,
-            ['MANUAL', eventId, code, expiresAt]
-        );
+        db.prepare(`INSERT INTO AccessCodes (discordId, eventId, code, expiresAt) VALUES (?, ?, ?, ?)`).run('MANUAL', eventId, code, expiresAt);
 
         return code;
     }
 
     static async checkCode(codeStr) {
-        const db = await getDB();
-        const codeRec = await db.get(`SELECT * FROM AccessCodes WHERE code = ?`, [codeStr]);
+        const db = getDB();
+        const codeRec = db.prepare(`SELECT * FROM AccessCodes WHERE code = ?`).get(codeStr);
 
         if (!codeRec) return { valid: false, reason: 'Code not found' };
         if (codeRec.used) return { valid: false, reason: 'Code already used' };
@@ -77,17 +68,17 @@ class CodeService {
             return { valid: false, reason: 'Code expired' };
         }
 
-        const event = await db.get(`SELECT * FROM Events WHERE id = ?`, [codeRec.eventId]);
+        const event = db.prepare(`SELECT * FROM Events WHERE id = ?`).get(codeRec.eventId);
         
         // Mark as used since the user wants it to be consumed upon checking
-        await db.run(`UPDATE AccessCodes SET used = 1 WHERE id = ?`, [codeRec.id]);
+        db.prepare(`UPDATE AccessCodes SET used = 1 WHERE id = ?`).run(codeRec.id);
         
         return { valid: true, eventId: codeRec.eventId, discordId: codeRec.discordId, expiresAt: codeRec.expiresAt, eventStatus: event ? event.status : 'Unknown' };
     }
 
     static async validateAndUseCode(codeStr) {
-        const db = await getDB();
-        const codeRec = await db.get(`SELECT * FROM AccessCodes WHERE code = ?`, [codeStr]);
+        const db = getDB();
+        const codeRec = db.prepare(`SELECT * FROM AccessCodes WHERE code = ?`).get(codeStr);
 
         if (!codeRec) return { valid: false, reason: 'Code not found' };
         if (codeRec.used) return { valid: false, reason: 'Code already used' };
@@ -97,9 +88,9 @@ class CodeService {
         }
 
         // Mark as used
-        await db.run(`UPDATE AccessCodes SET used = 1 WHERE id = ?`, [codeRec.id]);
+        db.prepare(`UPDATE AccessCodes SET used = 1 WHERE id = ?`).run(codeRec.id);
         
-        const event = await db.get(`SELECT * FROM Events WHERE id = ?`, [codeRec.eventId]);
+        const event = db.prepare(`SELECT * FROM Events WHERE id = ?`).get(codeRec.eventId);
         
         return { valid: true, event };
     }

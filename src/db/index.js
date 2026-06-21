@@ -1,15 +1,16 @@
-const sqlite3 = require('sqlite3').verbose();
-const { open } = require('sqlite');
+const Database = require('better-sqlite3');
 const path = require('path');
 
-async function initDB() {
-    const db = await open({
-        filename: path.join(__dirname, 'database.sqlite'),
-        driver: sqlite3.Database
-    });
+let dbInstance = null;
+
+function initDB() {
+    const db = new Database(path.join(__dirname, 'database.sqlite'));
+    
+    // Use WAL mode for better concurrency
+    db.pragma('journal_mode = WAL');
 
     // Create tables
-    await db.exec(`
+    db.exec(`
         CREATE TABLE IF NOT EXISTS Users (
             discordId TEXT PRIMARY KEY,
             username TEXT,
@@ -38,12 +39,9 @@ async function initDB() {
     return db;
 }
 
-// Singleton connection
-let dbInstance = null;
-
-async function getDB() {
+function getDB() {
     if (!dbInstance) {
-        dbInstance = await initDB();
+        dbInstance = initDB();
     }
     return dbInstance;
 }
