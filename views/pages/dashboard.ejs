@@ -1,0 +1,119 @@
+<div>
+    <h2>Dashboard Overview</h2>
+    <br>
+    <div class="dashboard-grid">
+        <div class="glass-panel stat-card">
+            <div class="stat-icon blue">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Registered Users</h3>
+                <p><%= usersCount %></p>
+            </div>
+        </div>
+
+        <div class="glass-panel stat-card">
+            <div class="stat-icon cyan">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Generated Codes</h3>
+                <p><%= stats.codesGenerated %></p>
+            </div>
+        </div>
+
+        <div class="glass-panel stat-card">
+            <div class="stat-icon green">
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+            <div class="stat-info">
+                <h3>Codes Used</h3>
+                <p><%= stats.codesUsed %></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel event-panel">
+        <div class="event-header">
+            <h3>Current Event Status</h3>
+            <button id="btnCreateEvent" class="btn-create">
+                <i class="fa-solid fa-play"></i> Create Duel Event
+            </button>
+        </div>
+
+        <div id="eventLoading" style="display: none; text-align: center; padding: 2rem;">
+            <div class="spinner"></div>
+            <p style="margin-top: 1rem; color: var(--accent-cyan);">Connecting to Starblast and creating room...</p>
+        </div>
+
+        <div class="event-details" id="eventDetails">
+            <% if (activeEvent) { %>
+                <p>Status: <span class="status-badge <%= activeEvent.status.toLowerCase() %>"><%= activeEvent.status %></span></p>
+                <p>Participants: <%= stats.participantsCount %></p>
+                <p>Started: <%= new Date(activeEvent.createdAt).toLocaleString() %></p>
+                
+                <div style="margin-top: 1rem;">
+                    <label style="color: var(--text-muted); font-size: 0.9rem;">Current Duel Room</label>
+                    <div class="link-box">
+                        <input type="text" id="roomLinkInput" value="<%= activeEvent.roomLink %>" readonly>
+                        <button class="btn-copy" onclick="copyRoomLink()"><i class="fa-regular fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+            <% } else { %>
+                <p style="color: var(--text-muted);">No active events running.</p>
+            <% } %>
+        </div>
+    </div>
+
+    <% if (activeEvent) { %>
+    <div class="glass-panel resend-panel" style="margin-bottom: 2rem;">
+        <h3><i class="fa-solid fa-paper-plane"></i> Resend Access Code</h3>
+        <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.9rem;">Invalidates old code and generates a new one via Discord DM.</p>
+        
+        <div class="resend-form">
+            <input type="text" id="resendDiscordId" class="form-control" placeholder="Discord User ID">
+            <button id="btnResend" class="btn-secondary">Send New Code</button>
+        </div>
+        <div id="resendStatus" style="margin-top: 1rem; font-size: 0.9rem;"></div>
+    </div>
+    <% } %>
+
+    <div class="glass-panel event-panel">
+        <div class="event-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Event History</h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Room Link</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (locals.allEvents && allEvents.length > 0) { %>
+                        <% allEvents.forEach(evt => { %>
+                            <tr>
+                                <td>#<%= evt.id %></td>
+                                <td><a href="<%= evt.roomLink %>" target="_blank" style="color: var(--accent-blue); text-decoration: none;"><%= evt.roomLink %></a></td>
+                                <td><span class="status-badge <%= evt.status.toLowerCase() %>"><%= evt.status %></span></td>
+                                <td><%= new Date(evt.createdAt).toLocaleString() %></td>
+                                <td>
+                                    <button class="btn-secondary btn-create-code" data-id="<%= evt.id %>" style="margin-right: 0.5rem; padding: 0.5rem 1rem; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Create Code</button>
+                                    <a class="btn-danger btn-delete-evt" href="/api/events/delete/<%= evt.id %>"><i class="fa-solid fa-trash"></i> Delete</a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted);">No events found.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

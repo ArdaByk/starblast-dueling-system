@@ -1,0 +1,21 @@
+<div class="glass-panel login-box">
+    <h1><i class="fa-solid fa-rocket"></i> Admin Login</h1>
+    
+    <% if (locals.error) { %>
+        <div class="alert alert-danger">
+            <%= error %>
+        </div>
+    <% } %>
+
+    <form action="/login" method="POST">
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control" required placeholder="Enter admin password">
+        </div>
+        <div class="form-group">
+            <label for="ecpCode">ECP Code</label>
+            <input type="password" id="ecpCode" name="ecpCode" class="form-control" required placeholder="Enter Starblast ECP">
+        </div>
+        <button type="submit" class="btn-primary">Login</button>
+    </form>
+</div>

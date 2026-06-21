@@ -1,0 +1,29 @@
+{
+  "name": "starblast-dueling-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.19.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1",
+    "starblast-modding": "^1.4.40-alpha6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
