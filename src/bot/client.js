@@ -24,6 +24,10 @@ function setupBot() {
         if (message.author.bot) return;
 
         if (message.content === '!registerduel') {
+            const adminRoleId = process.env.ADMIN_ROLE_ID;
+            if (adminRoleId && !message.member.roles.cache.has(adminRoleId)) {
+                return message.reply({ content: '❌ Bu komutu kullanmak için yetkiniz yok.', ephemeral: true });
+            }
             const embed = new EmbedBuilder()
                 .setTitle('🎮 Moon Duel Event Registration')
                 .setDescription('React with ⚔️ to participate in the next duel event.')
