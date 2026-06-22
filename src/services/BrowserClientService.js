@@ -10,6 +10,7 @@ const MOD_PATH = process.env.MOD_PATH ? path.resolve(process.env.MOD_PATH) : nul
 const DEFAULT_MOD = 'https://starblast.data.neuronality.com/mods/sdc.js';
 
 class BrowserClientService {
+     static activeClients = new Map();
     static async createDuelRoom(ecpKey) {
         console.log('Starting BrowserClient...');
         console.log('Mod source:', MOD_URL || MOD_PATH || DEFAULT_MOD);
@@ -27,10 +28,12 @@ class BrowserClientService {
                 console.log('Starblast:', msg);
             });
 
-            // Handle start event to get the room link
+           // Handle start event to get the room link
             container.getNode().on('start', (link) => {
+                BrowserClientService.activeClients.set(link, container);
                 resolve(link);
             });
+
 
             (async () => {
                 try {
@@ -52,13 +55,28 @@ class BrowserClientService {
             // Fallback timeout in case of hanging
             setTimeout(() => {
                 if (container.getNode().link) {
+                    BrowserClientService.activeClients.set(container.getNode().link, container);
                     resolve(container.getNode().link);
                 } else {
                     reject(new Error('ModdingClient started but room link was not received within 30 seconds.'));
                 }
             }, 30000);
+
         });
     }
+      static stopDuelRoom(roomLink) {
+        if (BrowserClientService.activeClients.has(roomLink)) {
+            console.log(`Stopping ModdingClient for room: ${roomLink}`);
+            const container = BrowserClientService.activeClients.get(roomLink);
+            if (container && typeof container.stop === 'function') {
+                container.stop();
+            }
+            BrowserClientService.activeClients.delete(roomLink);
+        } else {
+            console.log(`No active ModdingClient found for room: ${roomLink}`);
+        }
+    }
+
 }
 
 module.exports = BrowserClientService;

@@ -157,17 +157,6 @@ router.post('/api/codes/manual/:eventId', AuthService.requireAuth, async (req, r
     }
 });
 
-// Check Code API
-router.get('/api/codes/check/:code', async (req, res) => {
-    try {
-        const codeStr = req.params.code;
-        const result = await CodeService.checkCode(codeStr);
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ valid: false, error: error.message });
-    }
-});
-
 // Use Code API (consuming, one-time) — called by the in-game mod to verify a player.
 // On success the code is marked used and cannot be reused. Returns { valid, reason }.
 router.post('/api/codes/use/:code', async (req, res) => {
@@ -179,13 +168,20 @@ router.post('/api/codes/use/:code', async (req, res) => {
     }
 });
 
+
 // Delete Event API
 router.get('/api/events/delete/:id', AuthService.requireAuth, async (req, res) => {
     console.log(`DELETE /api/events/${req.params.id} received!`);
     try {
-        await EventService.deleteEvent(req.params.id);
+        const eventId = req.params.id;
+        const event = await EventService.getEventById(eventId);
+        if (event) {
+            BrowserClientService.stopDuelRoom(event.roomLink);
+        }
+        await EventService.deleteEvent(eventId);
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Delete Event Error:', error);
+        return res.status(500).json({ success: false, error: error.message });
     }
 
     res.redirect("/dashboard");

@@ -12,6 +12,11 @@ class EventService {
         return db.prepare(`SELECT * FROM Events WHERE status = 'Running' ORDER BY id DESC LIMIT 1`).get();
     }
 
+    static async getEventById(eventId) {
+        const db = getDB();
+        return db.prepare(`SELECT * FROM Events WHERE id = ?`).get(eventId);
+    }
+
     static async updateEventStatus(eventId, status) {
         const db = getDB();
         db.prepare(`UPDATE Events SET status = ? WHERE id = ?`).run(status, eventId);
