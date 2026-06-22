@@ -36,6 +36,9 @@ function initDB() {
         );
     `);
 
+    // Insert dummy 'MANUAL' user to satisfy foreign key constraints for manual codes
+    db.exec(`INSERT OR IGNORE INTO Users (discordId, username) VALUES ('MANUAL', 'System Manual User')`);
+
     return db;
 }
 
