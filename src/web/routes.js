@@ -168,6 +168,17 @@ router.get('/api/codes/check/:code', async (req, res) => {
     }
 });
 
+// Use Code API (consuming, one-time) — called by the in-game mod to verify a player.
+// On success the code is marked used and cannot be reused. Returns { valid, reason }.
+router.post('/api/codes/use/:code', async (req, res) => {
+    try {
+        const result = await CodeService.validateAndUseCode(req.params.code);
+        res.json({ valid: result.valid, reason: result.reason || null });
+    } catch (error) {
+        res.status(500).json({ valid: false, reason: error.message });
+    }
+});
+
 // Delete Event API
 router.get('/api/events/delete/:id', AuthService.requireAuth, async (req, res) => {
     console.log(`DELETE /api/events/${req.params.id} received!`);

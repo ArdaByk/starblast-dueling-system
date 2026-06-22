@@ -1,8 +1,18 @@
 const { BrowserClient } = require('starblast-modding');
+const path = require('path');
+
+// Which mod the duel room runs. Configure via .env:
+//   MOD_URL  = https URL to a mod file (e.g. a raw.githubusercontent.com link) — auto-reloads on change
+//   MOD_PATH = absolute/relative path to a local mod file — auto-reloads on change
+// If neither is set, falls back to the default Starblast duel mod (sdc.js).
+const MOD_URL = process.env.MOD_URL || null;
+const MOD_PATH = process.env.MOD_PATH ? path.resolve(process.env.MOD_PATH) : null;
+const DEFAULT_MOD = 'https://starblast.data.neuronality.com/mods/sdc.js';
 
 class BrowserClientService {
     static async createDuelRoom(ecpKey) {
         console.log('Starting BrowserClient...');
+        console.log('Mod source:', MOD_URL || MOD_PATH || DEFAULT_MOD);
 
         return new Promise((resolve, reject) => {
             const container = new BrowserClient({
@@ -24,7 +34,11 @@ class BrowserClientService {
 
             (async () => {
                 try {
-                    await container.loadCodeFromExternal("https://starblast.data.neuronality.com/mods/sdc.js");
+                    if (MOD_PATH) {
+                        await container.loadCodeFromLocal(MOD_PATH, { watchChanges: true });
+                    } else {
+                        await container.loadCodeFromExternal(MOD_URL || DEFAULT_MOD, { watchChanges: true, watchInterval: 5000 });
+                    }
                     container.setRegion('Europe');
                     container.setECPKey(ecpKey);
                     
