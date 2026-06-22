@@ -1,0 +1,78 @@
+<div class="console-page">
+    <div class="console-header">
+        <h2><i class="fa-solid fa-terminal"></i> Mod Console</h2>
+        <span id="roomStatus" class="room-status <%= roomActive ? 'on' : 'off' %>">
+            <%= roomActive ? '● Room active' : '○ No active room' %>
+        </span>
+    </div>
+    <p class="console-sub">Run any command in the running duel mod. Output, errors and the kill feed stream below.</p>
+
+    <div class="console-layout">
+        <!-- Output + input -->
+        <div class="glass-panel console-main">
+            <div id="consoleOutput" class="console-output"></div>
+            <form id="consoleForm" class="console-input-row" autocomplete="off">
+                <span class="prompt-sign">&gt;</span>
+                <input id="consoleInput" type="text" placeholder='Type a command, e.g. say("hello",6) or kick(12)' spellcheck="false" />
+                <button type="submit" class="btn-run"><i class="fa-solid fa-play"></i> Run</button>
+            </form>
+        </div>
+
+        <!-- Quick commands -->
+        <div class="glass-panel console-cmds">
+            <h3>Commands</h3>
+            <% commands.forEach(function(group){ %>
+                <div class="cmd-group-title"><%= group.group %></div>
+                <div class="cmd-group">
+                    <% group.cmds.forEach(function(c){ %>
+                        <button class="cmd-btn"
+                                data-name="<%= c.name %>"
+                                data-args='<%- JSON.stringify(c.args) %>'>
+                            <%= c.label %>
+                        </button>
+                    <% }); %>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
+
+<style>
+.console-page { max-width: 1200px; }
+.console-header { display: flex; align-items: center; gap: 16px; }
+.room-status { font-size: 0.85rem; padding: 3px 10px; border-radius: 999px; }
+.room-status.on  { background: rgba(40,200,120,0.15); color: #4fe0a0; }
+.room-status.off { background: rgba(200,80,80,0.15);  color: #e88; }
+.console-sub { color: #9fb2dd; margin: 6px 0 18px; font-size: 0.9rem; }
+.console-layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+.console-main { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.console-output {
+    height: 460px; overflow-y: auto; padding: 14px 16px;
+    font-family: 'Consolas','Courier New',monospace; font-size: 13px; line-height: 1.55;
+    background: rgba(6,10,26,0.55); white-space: pre-wrap; word-break: break-word;
+}
+.console-output .ln { display: block; }
+.console-output .lvl-cmd   { color: #7fb0ff; }
+.console-output .lvl-out   { color: #cdd8f5; }
+.console-output .lvl-error { color: #ff8a8a; }
+.console-output .lvl-info  { color: #8aa0c8; }
+.console-output .lvl-kill  { color: #ffd479; }
+.console-output .lvl-log   { color: #b8c6e8; }
+.console-input-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(120,150,220,0.18); }
+.prompt-sign { color: #7fb0ff; font-family: monospace; font-weight: 700; }
+#consoleInput { flex: 1; background: rgba(10,16,40,0.7); border: 1px solid #2a4a8a; color: #cde;
+    padding: 9px 12px; border-radius: 8px; font-family: monospace; font-size: 13px; outline: none; }
+#consoleInput:focus { border-color: #4a7adf; }
+.btn-run { background: #1E3A7A; color: #fff; border: 0; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.btn-run:hover { background: #2a55b0; }
+.console-cmds { padding: 16px; }
+.console-cmds h3 { margin: 0 0 12px; }
+.cmd-group-title { color: #7f93c0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
+.cmd-group { display: flex; flex-direction: column; gap: 6px; }
+.cmd-btn { text-align: left; background: rgba(30,58,122,0.35); color: #cdd8f5; border: 1px solid rgba(74,122,223,0.25);
+    padding: 8px 11px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: background .12s; }
+.cmd-btn:hover { background: rgba(42,85,176,0.5); }
+@media (max-width: 900px) { .console-layout { grid-template-columns: 1fr; } }
+</style>
+
+<script src="/js/console.js"></script>
