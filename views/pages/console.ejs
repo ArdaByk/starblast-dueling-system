@@ -5,7 +5,7 @@
             <%= roomActive ? '● Room active' : '○ No active room' %>
         </span>
     </div>
-    <p class="console-sub">Run any command in the running duel mod. Output, errors and the kill feed stream below.</p>
+    <p class="console-sub">Pick a player / ship and click — or type any command. Output &amp; the kill feed stream below.</p>
 
     <div class="console-layout">
         <!-- Output + input -->
@@ -13,51 +13,137 @@
             <div id="consoleOutput" class="console-output"></div>
             <form id="consoleForm" class="console-input-row" autocomplete="off">
                 <span class="prompt-sign">&gt;</span>
-                <input id="consoleInput" type="text" placeholder='Type a command, e.g. say("hello",6) or kick(12)' spellcheck="false" />
+                <input id="consoleInput" type="text" placeholder='Type any command, e.g. say("hi",6)' spellcheck="false" />
                 <button type="submit" class="btn-run"><i class="fa-solid fa-play"></i> Run</button>
             </form>
         </div>
 
-        <!-- Quick commands -->
+        <!-- Quick actions -->
         <div class="glass-panel console-cmds">
-            <h3>Commands</h3>
-            <% commands.forEach(function(group){ %>
-                <div class="cmd-group-title"><%= group.group %></div>
-                <div class="cmd-group">
-                    <% group.cmds.forEach(function(c){ %>
-                        <button class="cmd-btn"
-                                data-name="<%= c.name %>"
-                                data-args='<%- JSON.stringify(c.args) %>'>
-                            <%= c.label %>
-                        </button>
-                    <% }); %>
+            <div class="qa-head">
+                <h3>Quick actions</h3>
+                <button id="refreshPlayers" class="mini-btn" title="Refresh players"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+
+            <div class="qa-card">
+                <label>🚀 Give ship</label>
+                <select class="player-select" id="gs_p"></select>
+                <select class="ship-select" id="gs_s"></select>
+                <button class="qa-go" data-act="giveship">Give ship</button>
+            </div>
+
+            <div class="qa-card">
+                <label>🛡 Player actions</label>
+                <select class="player-select" id="pa_p"></select>
+                <div class="qa-btns">
+                    <button data-act="kick"        data-p="pa_p">👢 Kick</button>
+                    <button data-act="ban"         data-p="pa_p">🔨 Ban</button>
+                    <button data-act="forcespec"   data-p="pa_p">👁 Spec</button>
+                    <button data-act="ghost"       data-p="pa_p">👻 Ghost</button>
+                    <button data-act="giveadmin"   data-p="pa_p">⭐ Admin</button>
+                    <button data-act="removeadmin" data-p="pa_p">✖ Unadmin</button>
+                    <button data-act="heal"        data-p="pa_p">❤️ Heal</button>
+                    <button data-act="freeze"      data-p="pa_p">🧊 Freeze</button>
+                    <button data-act="unfreeze"    data-p="pa_p">☀️ Unfreeze</button>
+                    <button data-act="godon"       data-p="pa_p">💪 God ON</button>
+                    <button data-act="godoff"      data-p="pa_p">🟢 God OFF</button>
+                    <button data-act="crash"       data-p="pa_p">💥 Crash</button>
+                    <button data-act="bfban"       data-p="pa_p">☠️ BF Ban</button>
                 </div>
-            <% }); %>
+            </div>
+
+            <div class="qa-card">
+                <label>🎬 Event control</label>
+                <div class="qa-btns">
+                    <button data-act="cleararena">🧹 Clear arena</button>
+                    <button data-act="releaseall">🔓 Release all</button>
+                    <button data-act="randomduel">🎲 Random duel</button>
+                    <button data-act="listplayers">📋 List players</button>
+                </div>
+            </div>
+
+            <div class="qa-card">
+                <label>📍 Teleport (A → B)</label>
+                <select class="player-select" id="tp_a"></select>
+                <select class="player-select" id="tp_b"></select>
+                <button class="qa-go" data-act="tpto">Teleport A to B</button>
+            </div>
+
+            <div class="qa-card">
+                <label>📣 Quick messages</label>
+                <div class="qa-btns">
+                    <button data-act="say_duel">⚔️ Duel soon</button>
+                    <button data-act="say_gl">🌙 Good luck</button>
+                    <button data-act="say_gg">🏆 GG</button>
+                    <button data-act="say_quiet">🔇 Spec quiet</button>
+                </div>
+            </div>
+
+            <div class="qa-card">
+                <label>⚔️ Ranked duel</label>
+                <select class="player-select" id="duel_p1"></select>
+                <select class="player-select" id="duel_p2"></select>
+                <select class="ship-select" id="duel_s"></select>
+                <div class="qa-btns">
+                    <button class="qa-go" data-act="startduel">Start duel</button>
+                    <button data-act="stopduel">🛑 Stop</button>
+                </div>
+            </div>
+
+            <div class="qa-card">
+                <label>💬 Message player</label>
+                <select class="player-select" id="msg_p"></select>
+                <input type="text" id="msg_t" placeholder="message…" />
+                <button class="qa-go" data-act="msg">Send</button>
+            </div>
+
+            <div class="qa-card">
+                <label>🚀 Require ship</label>
+                <select class="ship-select" id="req_s"></select>
+                <div class="qa-btns">
+                    <button class="qa-go" data-act="require">Require</button>
+                    <button data-act="unrequire">Unrequire</button>
+                </div>
+            </div>
+
+            <div class="qa-card">
+                <label>📢 Say to all</label>
+                <input type="text" id="say_t" placeholder="message…" />
+                <div class="qa-btns">
+                    <input type="number" id="say_s" value="6" title="seconds" />
+                    <button class="qa-go" data-act="say">Say</button>
+                </div>
+            </div>
+
+            <div class="qa-card">
+                <label>🌐 Server</label>
+                <div class="qa-btns">
+                    <button data-act="roominfo">🔗 Room info</button>
+                    <button data-act="publish">🌐 Publish server</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<script> window.__MOD_SHIPS = <%- JSON.stringify(ships) %>; </script>
+
 <style>
-.console-page { max-width: 1200px; }
+.console-page { max-width: 1240px; }
 .console-header { display: flex; align-items: center; gap: 16px; }
 .room-status { font-size: 0.85rem; padding: 3px 10px; border-radius: 999px; }
 .room-status.on  { background: rgba(40,200,120,0.15); color: #4fe0a0; }
 .room-status.off { background: rgba(200,80,80,0.15);  color: #e88; }
 .console-sub { color: #9fb2dd; margin: 6px 0 18px; font-size: 0.9rem; }
-.console-layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+.console-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
 .console-main { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
-.console-output {
-    height: 460px; overflow-y: auto; padding: 14px 16px;
+.console-output { height: 520px; overflow-y: auto; padding: 14px 16px;
     font-family: 'Consolas','Courier New',monospace; font-size: 13px; line-height: 1.55;
-    background: rgba(6,10,26,0.55); white-space: pre-wrap; word-break: break-word;
-}
+    background: rgba(6,10,26,0.55); white-space: pre-wrap; word-break: break-word; }
 .console-output .ln { display: block; }
-.console-output .lvl-cmd   { color: #7fb0ff; }
-.console-output .lvl-out   { color: #cdd8f5; }
-.console-output .lvl-error { color: #ff8a8a; }
-.console-output .lvl-info  { color: #8aa0c8; }
-.console-output .lvl-kill  { color: #ffd479; }
-.console-output .lvl-log   { color: #b8c6e8; }
+.console-output .lvl-cmd { color: #7fb0ff; } .console-output .lvl-out { color: #cdd8f5; }
+.console-output .lvl-error { color: #ff8a8a; } .console-output .lvl-info { color: #8aa0c8; }
+.console-output .lvl-kill { color: #ffd479; } .console-output .lvl-log { color: #b8c6e8; }
 .console-input-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(120,150,220,0.18); }
 .prompt-sign { color: #7fb0ff; font-family: monospace; font-weight: 700; }
 #consoleInput { flex: 1; background: rgba(10,16,40,0.7); border: 1px solid #2a4a8a; color: #cde;
@@ -65,14 +151,24 @@
 #consoleInput:focus { border-color: #4a7adf; }
 .btn-run { background: #1E3A7A; color: #fff; border: 0; padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
 .btn-run:hover { background: #2a55b0; }
-.console-cmds { padding: 16px; }
-.console-cmds h3 { margin: 0 0 12px; }
-.cmd-group-title { color: #7f93c0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
-.cmd-group { display: flex; flex-direction: column; gap: 6px; }
-.cmd-btn { text-align: left; background: rgba(30,58,122,0.35); color: #cdd8f5; border: 1px solid rgba(74,122,223,0.25);
-    padding: 8px 11px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: background .12s; }
-.cmd-btn:hover { background: rgba(42,85,176,0.5); }
-@media (max-width: 900px) { .console-layout { grid-template-columns: 1fr; } }
+.console-cmds { padding: 14px; }
+.qa-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.qa-head h3 { margin: 0; }
+.mini-btn { background: rgba(30,58,122,0.4); color: #cde; border: 1px solid rgba(74,122,223,0.3); width: 30px; height: 30px; border-radius: 7px; cursor: pointer; }
+.mini-btn:hover { background: rgba(42,85,176,0.6); }
+.qa-card { background: rgba(12,20,46,0.5); border: 1px solid rgba(74,122,223,0.18); border-radius: 10px; padding: 10px 11px; margin-bottom: 11px; }
+.qa-card label { display: block; color: #aebde0; font-size: 0.8rem; margin-bottom: 7px; font-weight: 600; }
+.qa-card select, .qa-card input { width: 100%; box-sizing: border-box; background: rgba(10,16,40,0.8); border: 1px solid #2a4a8a;
+    color: #cde; padding: 7px 9px; border-radius: 7px; font-size: 0.85rem; margin-bottom: 6px; outline: none; }
+.qa-card select:focus, .qa-card input:focus { border-color: #4a7adf; }
+.qa-btns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.qa-card button { background: rgba(30,58,122,0.45); color: #dde7fb; border: 1px solid rgba(74,122,223,0.28);
+    padding: 7px 11px; border-radius: 7px; cursor: pointer; font-size: 0.82rem; }
+.qa-card button:hover { background: rgba(42,85,176,0.6); }
+.qa-card button.qa-go { background: #1E3A7A; color: #fff; font-weight: 600; }
+.qa-card button.qa-go:hover { background: #2a55b0; }
+#say_s { width: 64px; margin-bottom: 0; }
+@media (max-width: 980px) { .console-layout { grid-template-columns: 1fr; } }
 </style>
 
 <script src="/js/console.js"></script>

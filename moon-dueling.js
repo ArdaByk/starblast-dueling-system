@@ -26,7 +26,7 @@ let staticMemory = {
         active: true,
         // Cloudflared tunnel -> local dueling server (has CORS + POST /api/codes/use/:code).
         // NOTE: a free trycloudflare URL changes every time you restart cloudflared — update this then.
-        apiBase: "https://willow-glossary-collins-app.trycloudflare.com",
+        apiBase: "https://starblast-dueling-system.onrender.com",
         maxAttempts: 2
     },
 
@@ -2404,6 +2404,10 @@ this.tick = (game) => {
 
             if (ship.custom._frozen) {
                 ship.set({ vx: 0, vy: 0 });
+            }
+
+            if (ship.custom._godMode) {
+                ship.set({ shield: 99999 });
             }
         }
     }
