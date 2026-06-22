@@ -187,6 +187,64 @@ router.get('/api/events/delete/:id', AuthService.requireAuth, async (req, res) =
 });
 
 
+// ── Live Mod Console ────────────────────────────────────────────────
+// Catalog of mod commands shown as quick-buttons in the console UI.
+// `args` describes prompts; the UI builds e.g. kick(12,"reason").
+const MOD_COMMANDS = [
+    { group: 'Duel', cmds: [
+        { name: 'rankedDuel',    label: '⚔️ Start Ranked Duel', args: [{ k: 'p1 id', t: 'num' }, { k: 'p2 id', t: 'num' }, { k: 'ship (opt)', t: 'num', opt: true }] },
+        { name: 'stopRankedDuel',label: '🛑 Stop Duel',          args: [] },
+        { name: 'requireShip',   label: '🚀 Require Ship',       args: [{ k: 'ship code', t: 'num' }] },
+    ]},
+    { group: 'Moderation', cmds: [
+        { name: 'kick',          label: '👢 Kick',          args: [{ k: 'player id', t: 'num' }, { k: 'reason (opt)', t: 'str', opt: true }] },
+        { name: 'ban',           label: '🔨 Ban',           args: [{ k: 'player id', t: 'num' }, { k: 'reason (opt)', t: 'str', opt: true }] },
+        { name: 'unban',         label: '♻️ Unban',         args: [{ k: 'name', t: 'str' }] },
+        { name: 'bruteforceBan', label: '☠️ Bruteforce Ban', args: [{ k: 'player id', t: 'num' }] },
+        { name: 'forceSpec',     label: '👁 Force Spec',     args: [{ k: 'player id', t: 'num' }] },
+        { name: 'crashGame',     label: '💥 Crash',         args: [{ k: 'player id', t: 'num' }] },
+        { name: 'ghostMode',     label: '👻 Ghost',         args: [{ k: 'player id', t: 'num' }] },
+    ]},
+    { group: 'Admin & ships', cmds: [
+        { name: 'giveAdmin',     label: '⭐ Give Admin',       args: [{ k: 'player id', t: 'num' }] },
+        { name: 'removeAdmin',   label: '✖ Remove Admin',     args: [{ k: 'player id', t: 'num' }] },
+        { name: 'giveAdminShip', label: '🌙 Give Admin Ship',  args: [{ k: 'player id', t: 'num' }, { k: 'ship (opt)', t: 'num', opt: true }] },
+    ]},
+    { group: 'Messaging', cmds: [
+        { name: 'say',  label: '📢 Say (broadcast)', args: [{ k: 'text', t: 'str' }, { k: 'seconds (opt)', t: 'num', opt: true }, { k: 'color (opt)', t: 'str', opt: true }] },
+        { name: 'msg',  label: '💬 Private message',  args: [{ k: 'player id', t: 'num' }, { k: 'text', t: 'str' }] },
+    ]},
+    { group: 'Tuning', cmds: [
+        { name: 'setTickThrottle',        label: '⏱ Tick Throttle',  args: [{ k: 'value', t: 'num' }] },
+        { name: 'resetRateLimit',         label: '🚦 Click Rate',     args: [{ k: 'value', t: 'num' }] },
+        { name: 'resetMinBruteforceSim',  label: '🎚 BF Similarity',  args: [{ k: 'value', t: 'num' }] },
+        { name: 'PublishToServerList',    label: '🌐 Publish Server', args: [] },
+    ]},
+];
+
+router.get('/console', AuthService.requireAuth, (req, res) => {
+    res.render('pages/console', { commands: MOD_COMMANDS, roomActive: BrowserClientService.isRoomActive() });
+});
+
+// Run a command in the running mod context.
+router.post('/api/console/exec', AuthService.requireAuth, async (req, res) => {
+    const command = (req.body && req.body.command || '').toString().trim();
+    if (!command) return res.status(400).json({ success: false, error: 'Empty command' });
+    try {
+        const result = await BrowserClientService.execCommand(command);
+        res.json({ success: result.success, output: result.output });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Incremental log polling. ?since=<lastSeq>
+router.get('/api/console/logs', AuthService.requireAuth, (req, res) => {
+    const since = parseInt(req.query.since) || 0;
+    res.json(BrowserClientService.getLogs(since));
+});
+
+
 // Public Join Route (Code Validation)
 router.get('/join/:code', async (req, res) => {
     const codeStr = req.params.code;
