@@ -222,8 +222,23 @@ const MOD_COMMANDS = [
     ]},
 ];
 
+// All selectable ships (code + label), mirrors the in-game admin selector.
+const MOD_SHIP_CODES = [609,605,615,616,613,614,101,201,202,301,302,303,304,401,402,403,404,405,406,501,502,503,504,505,506,507,601,602,603,604,606,607,617,618,619,620,621,622,623,624,625,626,627,628,629,630,631,632,633];
+const MOD_SHIP_LABELS = ["Legacy Spd","New Spd","🐋 whale-x","🛸 J-20","🚁 DropShip","⚡ ares-xs","Fly","Delta","Trident","Pulse","Side-F","ShadowX1","Y-Def","Vanguard","Mercury","X-Warior","Side-I","Pioneer","Crusader","U-Sniper","FuryStar","T-Warrior","Aetos","ShadowX2","Howler","Bat-Def","Adv-F","Scorpion","Marauder","Condor","Rock-Twr","O-Def","S17 a-10","S18 Alien_pr","S19 falcon","S20 giant_sh","S21 godbattl","S22 Mining P","S23 scp_2399","S24 Marauder","S25 Odyssey","S26 cruiser","S27 H2y-xp","S28 F35_genI","S29 F-16","S30 Elicopte","S31 bombardi","S32 Space_ca","S33 Lockheed"];
+const MOD_SHIPS = MOD_SHIP_CODES.map((c, i) => ({ code: c, label: MOD_SHIP_LABELS[i] || ('Ship ' + c) }));
+
 router.get('/console', AuthService.requireAuth, (req, res) => {
-    res.render('pages/console', { commands: MOD_COMMANDS, roomActive: BrowserClientService.isRoomActive() });
+    res.render('pages/console', { commands: MOD_COMMANDS, ships: MOD_SHIPS, roomActive: BrowserClientService.isRoomActive() });
+});
+
+// Live player list for the console dropdowns.
+router.get('/api/console/players', AuthService.requireAuth, async (req, res) => {
+    let players = [];
+    try {
+        const out = await BrowserClientService.evalQuiet('JSON.stringify((typeof game!=="undefined"&&game.ships?game.ships:[]).map(function(s){return {id:s.id,name:s.name};}))');
+        if (out) { try { players = JSON.parse(out); } catch (e) {} }
+    } catch (e) {}
+    res.json({ players, active: BrowserClientService.isRoomActive() });
 });
 
 // Run a command in the running mod context.

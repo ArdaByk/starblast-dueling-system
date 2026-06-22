@@ -115,6 +115,16 @@ class BrowserClientService {
         return { lines, lastSeq: logSeq, active: BrowserClientService.isRoomActive() };
     }
 
+    // Evaluate an expression in the mod context and return its output WITHOUT logging
+    // (used to fetch the live player list for the console dropdowns).
+    static async evalQuiet(code) {
+        if (!activeContainer) return null;
+        try {
+            const res = await activeContainer.execute(code, { allowEval: true, captureOutput: true });
+            return res && res.output !== undefined ? res.output : null;
+        } catch (e) { return null; }
+    }
+
     // Run an arbitrary mod command (kick(1), rankedDuel(1,2), say("hi"), …) in the
     // running mod's context and return its captured output.
     static async execCommand(command) {
