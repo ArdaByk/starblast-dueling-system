@@ -93,18 +93,21 @@
     // ── Quick action handlers ──
     // single-player simple calls: fn(id)
     const PLAYER_FN = { kick: 'kick', ban: 'ban', forcespec: 'forceSpec', ghost: 'ghostMode', giveadmin: 'giveAdmin', removeadmin: 'removeAdmin', crash: 'crashGame', bfban: 'bruteforceBan' };
-    // single-player raw expressions: fn(id) -> code
+    // single-player raw expressions. NOTE: the console's execute() only sees GLOBAL members
+    // (game, say, kick…), NOT the mod's module-scoped consts like shipByID/turnToSpectator.
+    // So we resolve ships via game.ships.find(...) directly.
+    const SHIP = p => `game.ships.find(function(s){return s.id==${p};})`;
     const PLAYER_RAW = {
-        heal:     p => `shipByID(${p})&&shipByID(${p}).set({shield:99999,crystals:720})`,
-        freeze:   p => `shipByID(${p})&&(shipByID(${p}).custom._frozen=true)`,
-        unfreeze: p => `shipByID(${p})&&(shipByID(${p}).custom._frozen=false)`,
-        godon:    p => `shipByID(${p})&&(shipByID(${p}).custom._godMode=true)`,
-        godoff:   p => `shipByID(${p})&&(shipByID(${p}).custom._godMode=false)`,
+        heal:     p => `(function(){var s=${SHIP(p)};if(s)s.set({shield:99999,crystals:720});})()`,
+        freeze:   p => `(function(){var s=${SHIP(p)};if(s)s.custom._frozen=true;})()`,
+        unfreeze: p => `(function(){var s=${SHIP(p)};if(s)s.custom._frozen=false;})()`,
+        godon:    p => `(function(){var s=${SHIP(p)};if(s)s.custom._godMode=true;})()`,
+        godoff:   p => `(function(){var s=${SHIP(p)};if(s)s.custom._godMode=false;})()`,
     };
-    // no-input raw commands
+    // no-input raw commands (also avoid module-scoped consts — inline via game.ships + ship methods)
     const RAW = {
-        cleararena:  'game.ships.forEach(function(s){if(!s.spectating.value)turnToSpectator(s);s.custom.forcedToSpectate=true;});say("🧹 Arena cleared",4)',
-        releaseall:  'game.ships.forEach(function(s){s.custom.forcedToSpectate=false;_hideDuelSpecBanner(s);});say("🔓 Spectate released",3)',
+        cleararena:  'game.ships.forEach(function(s){if(s.type!=191){s.spectating={value:true,lastShip:String(s.type)};s.set({type:191,collider:false,crystals:0});}s.custom.forcedToSpectate=true;});say("🧹 Arena cleared",4)',
+        releaseall:  'game.ships.forEach(function(s){s.custom.forcedToSpectate=false;s.setUIComponent({id:"duelSpecBanner",visible:false});});say("🔓 Spectate released",3)',
         randomduel:  '(function(){var a=game.ships.filter(function(s){return !s.spectating.value;});if(a.length<2){return say("Need 2 active players",4);}var i=Math.floor(Math.random()*a.length),j;do{j=Math.floor(Math.random()*a.length);}while(j===i);rankedDuel(a[i].id,a[j].id);})()',
         listplayers: '(function(){echo("👥 "+game.ships.length+" players:");game.ships.forEach(function(s){echo("  "+s.id+" — "+s.name+(s.spectating.value?" (spec)":""));});})()',
         roominfo:    '(function(){echo("🔗 https://starblast.io/#"+game.modding.address);echo("👥 "+game.ships.length+" players online");})()',
@@ -132,7 +135,7 @@
                 const a = pv('tp_a'), b = pv('tp_b');
                 if (!a || !b) return append('error', '⚠️ Pick both players');
                 if (a === b) return append('error', '⚠️ Pick two different players');
-                return exec(`(function(){var x=shipByID(${a}),y=shipByID(${b});if(x&&y)x.set({x:y.x,y:y.y});})()`);
+                return exec(`(function(){var x=${SHIP(a)},y=${SHIP(b)};if(x&&y)x.set({x:y.x,y:y.y});})()`);
             }
             case 'giveship': {
                 const p = pv('gs_p'), s = pv('gs_s');
