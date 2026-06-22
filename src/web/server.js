@@ -19,6 +19,15 @@ function setupServer() {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
 
+    // CORS for API routes — the Starblast mod calls these from the starblast.io origin
+    app.use('/api', (req, res, next) => {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type');
+        if (req.method === 'OPTIONS') return res.sendStatus(204);
+        next();
+    });
+
     // Session setup
     app.use(session({
         secret: process.env.SESSION_SECRET || 'supersecret',
