@@ -45,7 +45,7 @@ class EventService {
         
         // Find users who participated in this event
         const codes = db.prepare(`SELECT discordId FROM AccessCodes WHERE eventId = ?`).all(eventId);
-        const discordIds = codes.map(c => c.discordId);
+        const discordIds = codes.map(c => c.discordId).filter(id => id !== 'MANUAL');
         
         // Delete AccessCodes
         db.prepare(`DELETE FROM AccessCodes WHERE eventId = ?`).run(eventId);

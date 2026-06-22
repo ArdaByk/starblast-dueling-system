@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        navigator.clipboard.writeText(data.joinLink).then(() => {
+                        navigator.clipboard.writeText(data.code).then(() => {
                             this.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
                             this.style.color = 'var(--success)';
                             this.style.borderColor = 'var(--success)';
