@@ -3267,8 +3267,12 @@ const _renderKeyboard = (ship) => {
 
     const KBX = 17.5, KBW = 65, keyH = 5.8;
     const rowY = [43, 50, 57, 64];
-    _KB_ROWS.forEach((row, ri) => {
-        const kw = KBW / 10, sx = KBX + (KBW - row.length * kw) / 2;
+    // Access codes are numeric -> show a number pad in "verify" mode; full keyboard otherwise.
+    const isVerify = ship.custom.kbMode === "verify";
+    const rows = isVerify ? ["123", "456", "789", "0"].map(r => r.split("")) : _KB_ROWS;
+    const kw = isVerify ? KBW / 4.5 : KBW / 10;
+    rows.forEach((row, ri) => {
+        const sx = KBX + (KBW - row.length * kw) / 2;
         row.forEach((k, ki) => {
             ship.setUIComponent({ id: "kbk_" + k, position: [sx + ki * kw, rowY[ri], kw - 0.7, keyH], clickable: true, visible: true,
                 components: [
@@ -3286,10 +3290,15 @@ const _renderKeyboard = (ship) => {
             { type: "text", position: [0, 0, 100, 100], value: val, color: c, align: "center" },
         ]
     });
-    kbBtn("kbSpace", 0, 26, "space", 220, "hsla(220, 70%, 82%, 1)");
-    kbBtn("kbBack",  27, 11, "⌫", 30, "hsla(30, 85%, 82%, 1)");
-    kbBtn("kbSend",  39, 14, "✓ OK", 140, "hsla(140, 85%, 84%, 1)");
-    kbBtn("kbCancel", 54, 9, "✗", 0, "hsla(0, 85%, 84%, 1)");
+    if (isVerify) {
+        kbBtn("kbBack", 0, 31, "⌫", 30, "hsla(30, 85%, 82%, 1)");
+        kbBtn("kbSend", 33, 32, "✓ OK", 140, "hsla(140, 85%, 84%, 1)");
+    } else {
+        kbBtn("kbSpace", 0, 26, "space", 220, "hsla(220, 70%, 82%, 1)");
+        kbBtn("kbBack",  27, 11, "⌫", 30, "hsla(30, 85%, 82%, 1)");
+        kbBtn("kbSend",  39, 14, "✓ OK", 140, "hsla(140, 85%, 84%, 1)");
+        kbBtn("kbCancel", 54, 9, "✗", 0, "hsla(0, 85%, 84%, 1)");
+    }
 };
 
 const _kbCommit = (ship) => {
