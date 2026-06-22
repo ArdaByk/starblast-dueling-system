@@ -27,6 +27,20 @@ class DiscordService {
             return false;
         }
     }
+
+    static getActiveRegistrationMessageId() {
+        return this.activeRegistrationMsgId;
+    }
+
+    static setActiveRegistrationMessageId(msgId) {
+        this.activeRegistrationMsgId = msgId;
+    }
+
+    static closeRegistration() {
+        this.activeRegistrationMsgId = null;
+    }
 }
+
+DiscordService.activeRegistrationMsgId = null;
 
 module.exports = DiscordService;

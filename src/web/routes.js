@@ -70,6 +70,9 @@ router.post('/api/events/create', AuthService.requireAuth, async (req, res) => {
         // 2. Save Event
         const eventId = await EventService.createEvent(roomLink);
 
+        // Close registration so no more reactions are accepted
+        DiscordService.closeRegistration();
+
         // 3. Generate Codes & Send DMs
         const users = await RegistrationService.getAllRegisteredUsers();
         let dmSuccessCount = 0;

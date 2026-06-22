@@ -19,7 +19,6 @@ function setupBot() {
         console.log(`Discord bot logged in as ${client.user.tag}`);
     });
 
-    let activeRegistrationMsgId = null;
 
     client.on('messageCreate', async (message) => {
         if (message.author.bot) return;
@@ -35,7 +34,7 @@ function setupBot() {
             await msg.react('⚔️');
             
             // Set this as the only active registration message
-            activeRegistrationMsgId = msg.id;
+            DiscordService.setActiveRegistrationMessageId(msg.id);
         }
     });
 
@@ -57,8 +56,9 @@ function setupBot() {
             const embed = reaction.message.embeds[0];
             if (embed && embed.title === '🎮 Moon Duel Event Registration') {
                 
-                // If this is an OLD registration message, invalidate the reaction
-                if (activeRegistrationMsgId && reaction.message.id !== activeRegistrationMsgId) {
+                // If registration is closed or this is an OLD registration message, invalidate the reaction
+                const activeId = DiscordService.getActiveRegistrationMessageId();
+                if (!activeId || reaction.message.id !== activeId) {
                     console.log(`User ${user.username} tried to react to an old registration message.`);
                     try {
                         await reaction.users.remove(user.id);
@@ -93,8 +93,9 @@ function setupBot() {
             const embed = reaction.message.embeds[0];
             if (embed && embed.title === '🎮 Moon Duel Event Registration') {
 
-                // Ignore un-reactions on old messages
-                if (activeRegistrationMsgId && reaction.message.id !== activeRegistrationMsgId) {
+                // Ignore un-reactions on closed/old messages
+                const activeId = DiscordService.getActiveRegistrationMessageId();
+                if (!activeId || reaction.message.id !== activeId) {
                     return;
                 }
 
