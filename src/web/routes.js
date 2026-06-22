@@ -21,11 +21,10 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-    const { password, ecpCode } = req.body;
+    const { password } = req.body;
     
     if (AuthService.validateLogin(password)) {
         req.session.authenticated = true;
-        req.session.ecpCode = ecpCode; // Store ECP for later
         return res.redirect('/dashboard');
     }
     
@@ -59,9 +58,9 @@ router.get('/dashboard', AuthService.requireAuth, async (req, res) => {
 // Create Event API
 router.post('/api/events/create', AuthService.requireAuth, async (req, res) => {
     console.log("POST /api/events/create received!");
-    const ecpCode = req.session.ecpCode;
+    const ecpCode = process.env.ECP_KEY;
     if (!ecpCode) {
-        return res.status(400).json({ success: false, error: 'No ECP code found in session. Please re-login.' });
+        return res.status(500).json({ success: false, error: 'ECP_KEY is not defined in .env file.' });
     }
 
     try {
